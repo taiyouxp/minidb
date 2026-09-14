@@ -73,7 +73,7 @@ int main(void)
     
     puts("\n[T2]\n");
     /*
-     * t2.1 now calculating offsets
+     * t2 figuring out how to add page addressing
         i want to make sure that the page 2 will be written in the correct address: 
         - pg0: 0 -> 4096 
         - pg1: 4096 -> 8192
@@ -130,5 +130,8 @@ int main(void)
  * i resolved '1' from yesterday
  * still need to implement '2', '3', '4' and '5' - this is for the new "tomorrow"
  *
- * (14.9 - mon - the new tomorrow from yesterday) 
+ * (14.9 - mon - the new tomorrow from yesterday)
+ * fix: so i thought i had resolved '1' but now m1_test1.c should be the correct way of I/O handling with offsets.
+ * i am writting a new test file to use that approach with structs. (that one is now deprecated)
+ * 
  * */
