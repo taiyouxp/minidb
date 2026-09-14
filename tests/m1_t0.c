@@ -7,6 +7,9 @@ testing language structures/features according to the proposal of M1:
 t1. persistence in a file 
 t2. page addressing
 t3. slot offset math
+
+UPDATE: this is deprecated and turned mainly into some kind of "documentation" on the bottom of this file, 
+later i will write into a dedicated file.   
 */
 
 struct pg 
@@ -132,6 +135,9 @@ int main(void)
  *
  * (14.9 - mon - the new tomorrow from yesterday)
  * fix: so i thought i had resolved '1' but now m1_test1.c should be the correct way of I/O handling with offsets.
- * i am writting a new test file to use that approach with structs. (that one is now deprecated)
- * 
+ * i am writting a new test file to use that approach with structs. (this one is now deprecated)
+ * the new file is m1_t2.c and will mainly be on m1 structure. we're going to deliver almost all previous 'tasks' tho. 
+ * i am just going to set m1 as simple as possible (only what was asked in classes for 15.9).
+ * we should be improving the repo according to the advance of the modules, 
+ * and with extra stuff that i should it be cool to have, culminating into a main program.   
  * */

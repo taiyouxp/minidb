@@ -1,0 +1,1 @@
+The offset byte of the register 'borabill' is 0x00002010 (8208)
