@@ -1,3 +1,3 @@
 Answer in one paragraph: Why does the DBMS manage its own pages instead of leaving that to the operating system?
 
-A: 
+A: To the OS, a database management system(DBMS) is a generic user-space process, the OS has no visibility into table schemas, transactions or queries. As a result the OS utilizes generic memory management algorithms, that in fact, can cause performance bottlenecks and other errors in database workloads.
