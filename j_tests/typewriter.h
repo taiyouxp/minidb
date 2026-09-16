@@ -4,12 +4,25 @@
 #include <stdio.h>
 #include <time.h>
 
-/*
-this header file will contain a function that appends notes to a file (EXAMPLE: NOTES.md).
-1-the file path must be declared in a macro.
-2-every log or note will have it's time and date before it.
-3-every log or note will have its author.
-4-we will be using this as a way to show our progress during the project.
-*/
+// later today i will implement a way to show the author of the message before it
+
+void write_note(const char* text)
+{
+	FILE * history = fopen("history.txt", "a");
+	
+	if (history == NULL)
+		return;
+	
+	time_t current_time;
+	time(&current_time);
+	struct tm * info = localtime(&current_time);
+	
+	char date_time[20];
+	strftime(date_time, sizeof(date_time), "%d-%m-%Y %H:%M:%S", info);
+	
+	fprintf(history, "[%s] \"%s\"\n", date_time, text);
+	
+	fclose(history);
+}
 
 #endif
