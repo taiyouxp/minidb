@@ -3,12 +3,12 @@
 
 #include <stdio.h>
 #include <time.h>
-
+#define HISTORY_PATH "../HISTORY.txt"
 // later today i will implement a way to show the author of the message before it
 
 void write_note(const char* text)
 {
-	FILE * history = fopen("history.txt", "a");
+	FILE * history = fopen(HISTORY_PATH, "a");
 	
 	if (history == NULL)
 		return;
