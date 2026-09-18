@@ -1,22 +1,47 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #define PG_SIZE 4096
 #define H_SIZE 16 // header
 #define SLOT_SIZE 8
 #define R_QNT (PG_SIZE - H_SIZE) / SLOT_SIZE // registers that fills an entire page 
 
-struct page
-{
-    char header[H_SIZE];
-    char registers[R_QNT][SLOT_SIZE]; // 510 slots for registers of 8 bytes (slot size)
-};  
+struct __attribute__((packed)) header {
+    uint16_t n_slots; // bytes 0-1 
+    uint16_t reg_size; // bytes 2-3  
+    uint32_t n_page; // bytes 4-7  
+    uint64_t reserved;// bytes 8-15 
+};
+
+struct __attribute__((packed)) reg {
+    uint16_t id; // 2 bytes 
+    uint16_t reg_num; // 2 bytes 
+    char data[4]; // 4 bytes
+};
+
+struct page {
+    struct header hdr;
+    struct reg registers[R_QNT]; // 510 registers (510 slots)
+};
+
+static short pg_count = 0; // memory control, sync() persists 
 
 long displacement(struct page pg, int n_pg, int n_slot)
 {
-    return (n_pg * PG_SIZE) + sizeof(pg.header) + (n_slot * SLOT_SIZE);
+    return (n_pg * PG_SIZE) + sizeof(pg.hdr) + (n_slot * SLOT_SIZE);
 }
+// write force to disk (kill -9 survive)
+static int sync_page(FILE *f, int n, const struct page *p)
+{
+    if (fseek(f, (long)PG_SIZE * n, SEEK_SET)) return -1;
+    if (fwrite(p, PG_SIZE, 1, f) != 1) return -1;
+    if (fflush(f)) return -1; // buffer -> kernel 
+    if (fsync(fileno(f))) return -1;  // kernel -> disk 
+    return 0;
+} 
 
 int write_pg(int n_pg, const struct page *p, FILE *f)
 {
@@ -28,7 +53,7 @@ int write_pg(int n_pg, const struct page *p, FILE *f)
 
     if (fseek(f, (long)PG_SIZE * n_pg, SEEK_SET) != 0) {
         perror("write_pg: fseek");
-        fclose(f);          /* still close what we opened */
+        fclose(f); // still close what we opened 
         return -1;
     }
 
@@ -77,25 +102,48 @@ int read_pg(int n_pg, struct page *p, FILE *f)
     return 0;
 }
 
+// return next free page 
+int alloc(void)
+{
+    return (int)pg_count++; // pg sequence
+}
+
 int main (void)
 {
-    struct page p2 = {0}; // initializer 'zeroing' the entire struct - its just like memset() 
-    strcpy(p2.registers[0], "borabill");
-    FILE* f1 = fopen("m1.db", "w+b");
-    write_pg(2, &p2, f1); // n: 2 = page 2
-    // ended process within the function
-   
-    // initiating a new process
-    FILE* f2 = fopen("m1.db", "r+b");
-    struct page to_read = {0}; 
+    // alloc() and sync() still in need to be used with write_pg and read_pg
+    struct page p2 = {0};
+    
+    p2.hdr.n_slots = 1;
+    p2.hdr.reg_size = sizeof(struct reg);
+    p2.hdr.n_page = 2;
+    
+    p2.registers[0].id = 1;
+    p2.registers[0].reg_num = 1001;
+    memcpy(p2.registers[0].data, "abcd", 4);
+    
+    FILE *f1 = fopen("m1.db", "w+b");
+    write_pg(2, &p2, f1);
+    
+    FILE *f2 = fopen("m1.db", "r+b");
+    struct page to_read = {0};
     read_pg(2, &to_read, f2);
     
-    printf("%s!\n", to_read.registers[0]); // register on slot 0 of page 2: borabill
+    printf("id=%u reg_num=%u data=%.4s\n",
+           to_read.registers[0].id,
+           to_read.registers[0].reg_num,
+           to_read.registers[0].data); 
     
-    // 'automatically' writting on NOTES.md - will use typewritter.c for trully automate log writting
+    // 'automatically' writting on NOTES.md - will use within typewritter.c to truly automate operation logging
     long register_offset = displacement(to_read, 2, 0);  // 8208 (0x00002010), checkable with 'xxd file.db' command
     
     FILE* md = fopen("../docs/NOTES.md", "w");
-    fprintf(md, "The offset byte of the register '%s' is 0x%08lx (%ld)", to_read.registers[0], register_offset, register_offset);
+    fprintf(md, "The offset byte of the register id=%u reg_num=%u data=%.4s is 0x%08lx (%ld)", 
+        to_read.registers[0].id,
+        to_read.registers[0].reg_num,
+        to_read.registers[0].data, 
+        register_offset, 
+        register_offset);
+    
     fclose(md); 
+ 
 }
