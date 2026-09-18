@@ -1,4 +1,4 @@
-#include "typewriter.h"
+#include "../include/typewriter.h"
 #include <stdio.h>
 #include <time.h>
 #define HISTORY_PATH "../docs/HISTORY.txt"
