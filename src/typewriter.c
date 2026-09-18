@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #define HISTORY_PATH "../docs/HISTORY.txt"
-// later today i will implement a way to show the author of the message before it
+// later today i will implement a way to show the author of the message before it - jean
 
 void write_note(const char* text)
 {
