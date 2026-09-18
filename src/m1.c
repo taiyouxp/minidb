@@ -9,32 +9,32 @@
 #define SLOT_SIZE 8
 #define R_QNT (PG_SIZE - H_SIZE) / SLOT_SIZE // registers that fills an entire page 
 
-struct __attribute__((packed)) header {
+typedef struct __attribute__((packed)) header {
     uint16_t n_slots; // bytes 0-1 
     uint16_t reg_size; // bytes 2-3  
     uint32_t n_page; // bytes 4-7  
     uint64_t reserved;// bytes 8-15 
-};
+} header;
 
-struct __attribute__((packed)) reg {
+typedef struct __attribute__((packed)) reg {
     uint16_t id; // 2 bytes 
     uint16_t reg_num; // 2 bytes 
     char data[4]; // 4 bytes
-};
+} reg;
 
-struct page {
-    struct header hdr;
-    struct reg registers[R_QNT]; // 510 registers (510 slots)
-};
+typedef struct page {
+    header hdr;
+    reg registers[R_QNT]; // 510 registers (510 slots)
+} page;
 
 static short pg_count = 0; // memory control, sync() persists 
 
-long displacement(struct page pg, int n_pg, int n_slot)
+long displacement(page pg, int n_pg, int n_slot)
 {
     return (n_pg * PG_SIZE) + sizeof(pg.hdr) + (n_slot * SLOT_SIZE);
 }
 // write force to disk (kill -9 survive)
-static int sync_page(FILE *f, int n, const struct page *p)
+static int sync_page(FILE *f, int n, const page *p)
 {
     if (fseek(f, (long)PG_SIZE * n, SEEK_SET)) return -1;
     if (fwrite(p, PG_SIZE, 1, f) != 1) return -1;
@@ -43,7 +43,7 @@ static int sync_page(FILE *f, int n, const struct page *p)
     return 0;
 } 
 
-int write_pg(int n_pg, const struct page *p, FILE *f)
+int write_pg(int n_pg, const page *p, FILE *f)
 {
     if (!f || !p) {
         errno = EINVAL;
@@ -71,7 +71,7 @@ int write_pg(int n_pg, const struct page *p, FILE *f)
     return 0;
 }
 
-int read_pg(int n_pg, struct page *p, FILE *f)
+int read_pg(int n_pg, page *p, FILE *f)
 {
     if (!f || !p) {
         errno = EINVAL;
@@ -110,7 +110,7 @@ int alloc(void)
 
 int main (void)
 {
-    // alloc() and sync() still in need to be used with write_pg and read_pg
+		// alloc() and sync() still in need to be used with write_pg and read_pg
     struct page p2 = {0};
     
     p2.hdr.n_slots = 1;
@@ -125,7 +125,7 @@ int main (void)
     write_pg(2, &p2, f1);
     
     FILE *f2 = fopen("m1.db", "r+b");
-    struct page to_read = {0};
+		page to_read = {0};
     read_pg(2, &to_read, f2);
     
     printf("id=%u reg_num=%u data=%.4s\n",

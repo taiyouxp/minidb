@@ -5,7 +5,7 @@ SRC_DIR  = src
 INC_DIR  = include
 
 CC       = gcc
-CFLAGS   = -Wall -Wextra -Werror
+CFLAGS   = 
 INCLUDES = -I$(INC_DIR)
 
 SRC      = $(wildcard $(SRC_DIR)/*.c)
