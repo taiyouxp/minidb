@@ -1,17 +1,23 @@
+#include <stdio.h>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <stdbool.h> // this is part of the cache structure
 
 #define PG_SIZE 4096
 #define H_SIZE 16 // header
 #define SLOT_SIZE 8
-#define R_QNT (PG_SIZE - H_SIZE) / SLOT_SIZE // registers that fills an entire page 
+#define R_QNT (PG_SIZE - H_SIZE) / SLOT_SIZE // registers that fills an entire page
+#define CACHE_MAX_SIZE 50
 
 /*
-grounds prepared so i can work on this later today - jean
-*/
+ *this file is a mess i know but many things here will be refactored into many different files and headers.
+ *this cache / bufferpool implementation is very basic as i am yet to find better and more efficient ways of solving this
+ *
+ */
 
 typedef struct __attribute__((packed)) header {
     uint16_t n_slots; // bytes 0-1 
@@ -31,7 +37,21 @@ typedef struct page {
     reg registers[R_QNT]; // 510 registers (510 slots)
 } page;
 
-static short pg_count = 0; // memory control, sync() persists 
+typedef struct frame
+{
+	page Page;
+	bool is_dirty;
+} frame;
+
+typedef struct cache
+{
+	FILE * file;
+	frame queue[CACHE_MAX_SIZE];
+	unsigned int miss;
+	unsigned int hit;
+	int front;
+	int rear;
+} cache_manager;
 
 long offset(page pg, int n_pg, int n_slot)
 {
@@ -108,53 +128,8 @@ int read_pg(int n_pg, page *p, FILE *f)
     return 0;
 }
 
-// return next free page 
-int alloc(void)
-{
-    return (int)pg_count++; // pg sequence
-}
-
 void new_register(page p, const char * data, int id, int reg_num)
 {
 	
 }
 
-int main (void)
-{
-	// alloc() and sync() still in need to be used with write_pg and read_pg
-    page p2 = {0};
-    
-    p2.hdr.n_slots = 1;
-    p2.hdr.reg_size = sizeof(reg);
-    p2.hdr.n_page = 2;
-    
-    p2.registers[0].id = 1;
-    p2.registers[0].reg_num = 1001;
-    memcpy(p2.registers[0].data, "abcd", 4);
-    
-    FILE *f1 = fopen("m1.db", "w+b");
-    write_pg(2, &p2, f1);
-	
-    FILE *f2 = fopen("m1.db", "r+b");
-	page to_read = {0};
-    read_pg(2, &to_read, f2);
-    
-    printf("id=%u reg_num=%u data=%.4s\n",
-           to_read.registers[0].id,
-           to_read.registers[0].reg_num,
-           to_read.registers[0].data); 
-    
-    // 'automatically' writting on NOTES.md - will use within typewritter.c to truly automate operation logging
-    long register_offset = offset(to_read, 2, 0);  // 8208 (0x00002010), checkable with 'xxd file.db' command
-    
-    FILE* md = fopen("../docs/NOTES.md", "w");
-    fprintf(md, "The offset byte of the register id=%u reg_num=%u data=%.4s is 0x%08lx (%ld)", 
-        to_read.registers[0].id,
-        to_read.registers[0].reg_num,
-        to_read.registers[0].data, 
-        register_offset, 
-        register_offset);
-    
-    fclose(md); 
- 
-}
