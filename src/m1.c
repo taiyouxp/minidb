@@ -46,6 +46,14 @@ int read_pg(int n_pg, page *p, FILE *f)
             perror("read_pg: fread");
         return -1;
     }
+}
 
-    return 0;
+int next_free_page(FILE *f)
+{
+	page p0;
+	
+	if((read_pg(0, &p0, f))== -1)
+		return -1;
+	
+	return p0.hdr.n_page + 1;
 }

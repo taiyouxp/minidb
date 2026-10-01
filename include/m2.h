@@ -6,10 +6,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define CACHE_MAX_SIZE 50
+#define CACHE_MAX_SIZE 3
 
 typedef struct frame {
-	page Page;
+	page page;
 	bool is_dirty;
 } frame;
 

@@ -33,5 +33,9 @@ typedef struct page {
 long offset(page pg, int n_pg, int n_slot);
 int write_pg(int n_pg, const page *p, FILE *f);
 int read_pg(int n_pg, page *p, FILE *f);
+/*
+ * returns the next free page but doesnt increment into the page 0. this will be done in the new_register function
+ */
+int next_free_page(FILE *f);
 
 #endif
