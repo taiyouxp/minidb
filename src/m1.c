@@ -1,24 +1,28 @@
-#include "m1.h"
+#include "../include/m1.h"
+#include <sys/types.h>
 
-long offset(page pg, int n_pg, int n_slot)
+off_t offset(int n_pg, int n_slot)
 {
-    return (n_pg * PG_SIZE) + sizeof(pg.hdr) + (n_slot * SLOT_SIZE);
+    return (off_t)n_pg * PG_SIZE + H_SIZE + (off_t)n_slot * SLOT_SIZE;
 }
 
 int write_pg(int n_pg, const page *p, FILE *f)
 {
-    if (!f || !p) {
-        errno = EINVAL;
-        perror("write_pg");
-        return -1;
+    if (!f || !p) 
+    { 
+        errno = EINVAL; 
+        perror("write_pg"); 
+        return -1; 
     }
 
-    if (fseek(f, (long)PG_SIZE * n_pg, SEEK_SET) != 0) {
+    if (fseeko(f, (off_t)PG_SIZE * n_pg, SEEK_SET) != 0) 
+    {
         perror("write_pg: fseek");
         return -1;
     }
 
-    if (fwrite(p, PG_SIZE, 1, f) != 1) {
+    if (fwrite(p, PG_SIZE, 1, f) != 1) 
+    {
         perror("write_pg: fwrite");
         return -1;
     }
@@ -28,13 +32,15 @@ int write_pg(int n_pg, const page *p, FILE *f)
 
 int read_pg(int n_pg, page *p, FILE *f)
 {
-    if (!f || !p) {
+    if (!f || !p) 
+    {
         errno = EINVAL;
         perror("read_pg");
         return -1;
     }
 
-    if (fseek(f, (long)PG_SIZE * n_pg, SEEK_SET) != 0) {
+    if (fseeko(f, (off_t)PG_SIZE * n_pg, SEEK_SET) != 0) 
+    {
         perror("read_pg: fseek");
         return -1;
     }
