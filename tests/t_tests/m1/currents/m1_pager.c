@@ -2,12 +2,12 @@
 // implementation of m1 following serialization of pages
 // "an object that stores the open file and the pages number"
 
-
 #define _FILE_OFFSET_BITS 64 // macro for off_t (type used for file positions and sizes)
 #include <stdint.h>
 #include <stdio.h>
 #include "m1_pager.h"
-#include "../../src/m1.c"
+#include "../../../../src/m1.c"
+
 // using underlines as if it were methods
 static int validate(const pager *pg, uint32_t n)
 {
