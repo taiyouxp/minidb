@@ -1,4 +1,4 @@
-#include "m2.h"
+#include "../include/m2.h"
 
 void cache_init(cache * c, FILE * f)
 {
