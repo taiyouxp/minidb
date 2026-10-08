@@ -6,9 +6,11 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include "../include/codec.h"
 
 #define PG_SIZE 4096
-#define H_SIZE 16 // header
+#define H_SIZE 16 // header size
 #define SLOT_SIZE 8
 #define R_QNT ((PG_SIZE - H_SIZE) / SLOT_SIZE) // registers that fills an entire page
 
@@ -20,8 +22,7 @@ typedef struct __attribute__((packed)) header {
 } header;
 
 typedef struct __attribute__((packed)) reg {
-    uint16_t id; // 2 bytes
-    uint16_t reg_num; // 2 bytes
+    uint32_t id; // 4 bytes
     char data[4]; // 4 bytes
 } reg;
 
@@ -30,12 +31,18 @@ typedef struct page {
     reg registers[R_QNT]; // 510 registers (510 slots)
 } page;
 
-long offset(int n_pg, int n_slot);
+_Static_assert(sizeof(header) == H_SIZE, "header must be 16 bytes");
+_Static_assert(sizeof(reg) == SLOT_SIZE, "register must be 8 bytes");
+_Static_assert(sizeof(page) == PG_SIZE, "page must be 4096 bytes");
+
+long offset_desloc(int n_pg, int n_slot);
+
 int write_pg(int n_pg, const page *p, FILE *f);
 int read_pg(int n_pg, page *p, FILE *f);
-/*
- * returns the next free page but doesnt increment into the page 0. this will be done in the new_register function
- */
-int next_free_page(FILE *f);
+void page_init(page *p, int n_pg);
+
+void serialise(const reg *r, uint8_t out[SLOT_SIZE]);
+void deserialise(const uint8_t in[SLOT_SIZE], reg *r);
+int  insert(int n_pg, page *p, FILE *f, const reg *r);  // slot used, or -1
 
 #endif
