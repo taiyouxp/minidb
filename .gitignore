@@ -1,6 +1,6 @@
 obj/
 bin/
-tests/
+misc/
 *.o
 *.obj
 *.exe
