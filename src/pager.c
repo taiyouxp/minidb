@@ -5,7 +5,7 @@
 #define _FILE_OFFSET_BITS 64 // macro for off_t (type used for file positions and sizes)
 #include <stdint.h>
 #include <stdio.h>
-#include "m1.c"
+#include "../include/m1.h"
 #include "../include/pager.h"
 // using underlines as if it were methods
 

@@ -1,3 +1,4 @@
+// m1 aka 'page' 
 #define _FILE_OFFSET_BITS 64 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -5,7 +6,8 @@
 #include "../include/m1.h"
 #include "../include/codec.h"
 
-off_t offset_desloc(int n_pg, int n_slot) { return (off_t)n_pg * PG_SIZE + H_SIZE + (off_t)n_slot * SLOT_SIZE; }
+off_t offset_desloc(int n_pg, int n_slot) 
+{ return (off_t)n_pg * PG_SIZE + H_SIZE + (off_t)n_slot * SLOT_SIZE; }
 
 int write_pg(int n_pg, const page *p, FILE *f)
 {
@@ -61,7 +63,7 @@ void page_init(page *p, int n_pg)
 {
     memset(p, 0, sizeof *p);
     p->hdr.reg_size = sizeof(reg);
-    p->hdr.n_page   = n_pg;
+    p->hdr.n_page = n_pg;
 }
 
 void serialise(const reg *r, uint8_t out[SLOT_SIZE])
@@ -81,7 +83,7 @@ int insert(int n_pg, page *p, FILE *f, const reg *r)
     if (read_pg(n_pg, p, f) != 0) 
         return -1;
 
-    if (p->hdr.reg_size == 0)             // all-zero page: first use
+    if (p->hdr.reg_size == 0) // all-zero page: first use
         page_init(p, n_pg);
 
     if (p->hdr.n_slots >= R_QNT) 

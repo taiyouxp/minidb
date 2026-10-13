@@ -1,3 +1,6 @@
-The offset byte of the register id=1 reg_num=1001 data=abcd is 0x00002010 (8208)
+**M1:**
+The offset byte of the register id=1 reg_num=1001 data=abcd is 0x00002010 (8208) <br>
+Most difficulty: to set the structure of the page due to the given minidb design constraints. 
 
-M1 most difficulty: to set the structure of the page due to the given minidb design constraints. 
+**M2:** 
+So the syntax, the implementation of some kinda 'OOP' in C, the language structures have been some constraints to submit modules in the correct deadline. Anyway, without being specific, this figuring out was our burden, like, on the first sight, we didn't even paid attention in the correct structure of M1, which lead to a pager, and this 'pager' is called by the 'cache' functions, for example. Thus, trying to accomplish the instructions given on the slides by translating to the strict and low-level likeness of C has been an adventure. To actually answer (and be more specific) the most difficult decision: when and where a specific function (method) of the cache should call eachother, and so its parameters definitions. Also, i was letting the cache size be hard-coded (defined) as 3, but after some writing of the main (m1+m2 for now, and in the current writing of this, not yet commited), i thought this was not really efficient, as we could be testing different quantities of frames (cache capacity) to measure how many misses, hits and writes could differ (and so ticks).
