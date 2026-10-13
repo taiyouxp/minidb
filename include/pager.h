@@ -2,7 +2,7 @@
 #ifndef PAGER_H
 #define PAGER_H
 
-#include "../include/m1.h"
+#include "m1.h"
 
 typedef struct pager {
     FILE *f;

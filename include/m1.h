@@ -1,13 +1,12 @@
 #ifndef M1_H
 #define M1_H
 
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
+#include <sys/stat.h>
 #include <sys/types.h>
-#include "../include/codec.h"
+
+#include <stdint.h>
+#include <unistd.h>
+#include <stdio.h>
 
 #define PG_SIZE 4096
 #define H_SIZE 16 // header size

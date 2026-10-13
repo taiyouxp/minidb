@@ -1,8 +1,10 @@
 // m2 aka 'page cache'
+#include "m2.h"
+
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <stdlib.h>
-#include  "../include/m2.h"
 
 int cache_init(cache *c, pager *pg, int capacity)
 {
@@ -32,7 +34,7 @@ void cache_destroy(cache *c)
 // which frame holds page n? NULL if none 
 static frame *find(const cache *c, uint32_t n)
 {
-    for (int i = 0; i < c->capacity; i++)
+    for (uint32_t i = 0; i < c->capacity; i++)
         if (c->frames[i].in_use && c->frames[i].page_num == n)
             return &c->frames[i];
     return NULL;
@@ -48,7 +50,7 @@ static frame *free_frame(cache *c)
 {
     frame *victim = NULL;
 
-    for (int i = 0; i < c->capacity; i++) 
+    for (uint32_t i = 0; i < c->capacity; i++) 
     {
         frame *f = &c->frames[i];
         if (!f->in_use)
@@ -111,7 +113,7 @@ long cache_alloc(cache *c) { return pager_alloc(c->pg); }
 
 int cache_flush(cache *c)
 {
-    for (int i = 0; i < c->capacity; i++) 
+    for (uint32_t i = 0; i < c->capacity; i++) 
     {
         frame *f = &c->frames[i];
         if (f->in_use && f->is_dirty) 
@@ -164,7 +166,7 @@ int cache_get(cache *c, uint32_t n_pg, int slot, reg *out)
 // a useful helper 
 void cache_dump(const cache *c)
 {
-    for (int i = 0; i < c->capacity; i++) 
+    for (uint32_t i = 0; i < c->capacity; i++) 
     {
         const frame *f = &c->frames[i];
         if(f->in_use)

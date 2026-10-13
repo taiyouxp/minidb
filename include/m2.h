@@ -1,10 +1,10 @@
 #ifndef M2_H
 #define M2_H
-
 #include <stdbool.h>
 #include <stdint.h>
-#include "../src/m1.c"
-#include "../src/pager.c"
+
+#include "m1.h"
+#include "pager.h"
 
 // #define CACHE_MAX_SIZE 3 (its a dynamic memory manipulation transition !) 
 

@@ -1,3 +1,4 @@
+// explicit little endian
 #ifndef CODEC_H
 #define CODEC_H
 #include <stdint.h>

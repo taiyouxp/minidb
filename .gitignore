@@ -5,3 +5,5 @@ misc/
 *.obj
 *.exe
 *.db
+*.txt
+tests/m1+m2.c

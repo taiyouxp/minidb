@@ -1,10 +1,10 @@
 // m1 aka 'page' 
-#define _FILE_OFFSET_BITS 64 
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include "../include/m1.h"
-#include "../include/codec.h"
+#define _FILE_OFFSET_BITS 64
+#include <errno.h>
+#include <string.h>
+
+#include "m1.h"
+#include "codec.h"
 
 off_t offset_desloc(int n_pg, int n_slot) 
 { return (off_t)n_pg * PG_SIZE + H_SIZE + (off_t)n_slot * SLOT_SIZE; }
@@ -14,7 +14,7 @@ int write_pg(int n_pg, const page *p, FILE *f)
     if (!f || !p) 
     { 
         errno = EINVAL; 
-        perror("write_pg"); 
+        perror("write_pg");
         return -1; 
     }
 
@@ -29,7 +29,6 @@ int write_pg(int n_pg, const page *p, FILE *f)
         perror("write_pg: fwrite");
         return -1;
     }
-
     return 0;
 }
 
