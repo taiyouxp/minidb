@@ -35,7 +35,7 @@ int cache_flush(cache *c);
 int cache_insert(cache *c, uint32_t n_pg, const reg *r); // slot used, or -1 
 int cache_get(cache *c, uint32_t n_pg, int slot, reg *out);
 void cache_destroy(cache *c);
-bool cache_has(const cache *c, uint32_t n); /* is page n in memory? */
+bool cache_has(const cache *c, uint32_t n); // is page n in memory? 
 void cache_dump(const cache *c);
 
 #endif

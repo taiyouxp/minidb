@@ -6,4 +6,4 @@ misc/
 *.exe
 *.db
 *.txt
-tests/m1+m2.c
+tests/m1+m2_exs.c
