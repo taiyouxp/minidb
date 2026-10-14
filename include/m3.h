@@ -27,7 +27,15 @@ typedef struct m3_tree {
 void m3_init(m3_tree * t);
 m3_rec * m3_search(m3_tree * t, uint32_t key);
 int m3_insert(m3_tree * t, uint32_t key, m3_rec rec);
-void m3_print(m3_tree * t);
+void m3_range(
+	m3_tree * t, 
+	uint32_t lo, 
+	uint32_t hi,
+    void (*fn)(uint32_t key, m3_rec rec, void * ctx), 
+	void * ctx
+);
+int m3_height(const m3_tree * t);
+void m3_print(const m3_tree * t);
 void m3_destroy(m3_tree * t);
 
 #endif

@@ -22,9 +22,9 @@ typedef struct cache // buffer pool: frames + rules of 'enter and exit'
 {
     pager *pg;
     frame *frames;
-    uint32_t capacity;
+    uint32_t capacity; // allocated in cache init 
     uint64_t tick; // increases on every fix 
-    uint32_t hits, misses;
+    uint32_t hits, misses, writes; // writes = pages written in disk
 } cache;
 
 int cache_init(cache *c, pager *pg, int capacity);
@@ -34,7 +34,7 @@ long cache_alloc(cache *c);
 int cache_flush(cache *c);
 int cache_insert(cache *c, uint32_t n_pg, const reg *r); // slot used, or -1 
 int cache_get(cache *c, uint32_t n_pg, int slot, reg *out);
-int cache_get(cache *c, uint32_t n_pg, int slot, reg *out); /* 0 = ok */
+void cache_destroy(cache *c);
 bool cache_has(const cache *c, uint32_t n); /* is page n in memory? */
 void cache_dump(const cache *c);
 

@@ -33,5 +33,8 @@ re: fclean
 	$(MAKE) all
 
 .PHONY: all clean fclean re
+# make m3_ex && ./bin/m3_ex
+m3_ex: $(filter-out $(OBJ_DIR)/main.o,$(OBJ)) tests/m3_ex.c | $(BIN_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $(BIN_DIR)/m3_ex
 
 -include $(DEP)

@@ -1,10 +1,13 @@
 #include "m3.h"
+#include <stdalign.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 static m3_node * node_create(bool is_leaf)
 {
 	m3_node * n = calloc(1, sizeof(m3_node));
+	if (!n) { perror("m3: calloc"); exit(1); }
 	n->is_leaf = is_leaf;
 	return n;
 }
@@ -23,8 +26,8 @@ static m3_rec * leaf_search(m3_node * n, uint32_t key)
 		return &n->recs[i];
 	return NULL;
 }
-
-m3_rec * m3_search(m3_tree * t, uint32_t key)
+// walking down to the leaf where 'key' belongs
+static m3_node * find_leaf(m3_tree * t, uint32_t key)
 {
 	m3_node * n = t->root;
 
@@ -34,8 +37,12 @@ m3_rec * m3_search(m3_tree * t, uint32_t key)
 			i++;
 		n = n->children[i];
 	}
+	return n;
+}
 
-	return leaf_search(n, key);
+m3_rec * m3_search(m3_tree * t, uint32_t key)
+{
+	return leaf_search(find_leaf(t, key), key);
 }
 
 static void split_leaf(m3_node * leaf, uint32_t * promote_key, m3_node ** promote_node)
@@ -71,14 +78,26 @@ static void split_internal(m3_node * node, uint32_t * promote_key, m3_node ** pr
 		right->keys[i] = node->keys[mid + 1 + i];
 		right->children[i] = node->children[mid + 1 + i];
 	}
-	right->children[right->n_keys] = node->children[total + 1];
+	/*
+	* fix: a node with 'total' keys	has children 0..total, so the last one is.. [total]...
+	* (it was [total + 1], which surpass the end of array)
+	*/
+	right->children[right->n_keys] = node->children[total];
 
 	node->n_keys = mid;
 	*promote_node = right;
 }
-
-static bool insert_rec(m3_node * n, uint32_t key, m3_rec rec,
-                       uint32_t * promote_key, m3_node ** promote_node)
+/*
+* returns true if 'n' split. then promote_key / promote_node will 
+* be added to the parent.
+* this ensures that 'key' is not in the tree yet.
+*/
+static bool insert_rec(
+	m3_node * n,
+	uint32_t key, 
+	m3_rec rec,
+    uint32_t * promote_key, 
+	m3_node ** promote_node)
 {
 	if (n->is_leaf) {
 		int i = 0;
@@ -108,72 +127,109 @@ static bool insert_rec(m3_node * n, uint32_t key, m3_rec rec,
 	while (i < n->n_keys && key >= n->keys[i])
 		i++;
 
-	uint32_t pk;
-	m3_node * pn;
-	bool split = insert_rec(n->children[i], key, rec, &pk, &pn);
-	if (!split)
+	uint32_t child_key;
+	m3_node * child_new;
+	if (!insert_rec(n->children[i], key, rec, &child_key, &child_new))
 		return false;
-
+ 
+	// child split: add the new key at i and the new child at i + 1 
 	for (int j = n->n_keys; j > i; --j) {
 		n->keys[j] = n->keys[j - 1];
 		n->children[j + 1] = n->children[j];
 	}
-	n->keys[i] = pk;
-	n->children[i + 1] = pn;
+	n->keys[i] = child_key;
+	n->children[i + 1] = child_new;
 	n->n_keys++;
-
-	if (n->n_keys > M3_MAX_KEYS) {
-		split_internal(n, promote_key, promote_node);
-		return true;
-	}
-	return false;
+ 
+	if (n->n_keys <= M3_MAX_KEYS)
+		return false;
+	split_internal(n, promote_key, promote_node);
+	return true;	
 }
 
 int m3_insert(m3_tree * t, uint32_t key, m3_rec rec)
 {
-	uint32_t promote_key;
-	m3_node * promote_node;
+	if(m3_search(t, key))
+		return -1;
 
-	bool split = insert_rec(t->root, key, rec, &promote_key, &promote_node);
+	uint32_t pk;
+	m3_node * pn;
 
-	if (split) {
+	if (insert_rec(t->root, key, rec, &pk, &pn)) {
+		// tree split: tree grows one level
 		m3_node * new_root = node_create(false);
-		new_root->keys[0] = promote_key;
+		new_root->keys[0] = pk;
 		new_root->children[0] = t->root;
-		new_root->children[1] = promote_node;
+		new_root->children[1] = pn;
 		new_root->n_keys = 1;
 		t->root = new_root;
 	}
-
 	return 0;
 }
 
-void m3_print(m3_tree * t)
+void m3_range(m3_tree * t, 
+	uint32_t lo, 
+	uint32_t hi,
+    void (*fn)(uint32_t key, m3_rec rec, void * ctx), 
+	void * ctx)
 {
-	m3_node * n = t->root;
-
-	while (!n->is_leaf)
-		n = n->children[0];
-
-	while (n) {
-		for (int i = 0; i < n->n_keys; ++i)
-			printf("(%u -> pg%u,sl%u) ", n->keys[i], n->recs[i].page, n->recs[i].slot);
-		n = n->next;
-	}
-	printf("\n");
+	for (m3_node * n = find_leaf(t, lo); n; n = n->next)
+		for (int i = 0; i < n->n_keys; ++i) {
+			if (n->keys[i] > hi)
+				return;
+			if (n->keys[i] >= lo)
+				fn(n->keys[i], n->recs[i], ctx);
+		}
 }
 
-static void node_destroy(m3_node * n)
+int m3_height(const m3_tree * t)
+{
+	int h = 1;
+	for (const m3_node * n = t->root; !n->is_leaf; n = n->children[0])
+		h++;
+	return h;
+}
+// helper for m3_print
+static void print_node(const m3_node * n, int depth)
+{
+	printf("%*s%s [", depth * 4, "", n->is_leaf ? "leaf" : "node");
+	for (int i = 0; i < n->n_keys; ++i)
+		printf("%s%u", i ? " " : "", n->keys[i]);
+	puts("]");
+	if (!n->is_leaf)
+		for (int i = 0; i <= n->n_keys; ++i)
+			print_node(n->children[i], depth + 1);
+}
+
+void m3_print(const m3_tree * t)
+{
+	printf("height = %d\n", m3_height(t));
+	print_node(t->root, 0);
+ 
+	const m3_node * n = t->root;
+	while (!n->is_leaf)
+		n = n->children[0];
+	printf("leaf chain: ");
+	for (; n; n = n->next) {
+		printf("[");
+		for (int i = 0; i < n->n_keys; ++i)
+			printf("%s%u", i ? " " : "", n->keys[i]);
+		printf("]%s", n->next ? " -> " : "");
+	}
+	putchar('\n');
+}
+// helper for m3_destroy
+static void destroy_node(m3_node * n)
 {
 	if (!n->is_leaf) {
 		for (int i = 0; i <= n->n_keys; ++i)
-			node_destroy(n->children[i]);
+			destroy_node(n->children[i]); // its called recursion.
 	}
 	free(n);
 }
 
 void m3_destroy(m3_tree * t)
 {
-	node_destroy(t->root);
+	destroy_node(t->root);
 	t->root = NULL;
 }
