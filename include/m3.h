@@ -1,3 +1,4 @@
+// m3 aka 'b+ tree'
 #ifndef M3_H
 #define M3_H
 

@@ -1,4 +1,3 @@
-// m2 aka 'page cache'
 #include "m2.h"
 
 #include <stdio.h>

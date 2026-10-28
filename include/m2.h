@@ -1,3 +1,4 @@
+// m2 aka 'page cache'
 #ifndef M2_H
 #define M2_H
 #include <stdbool.h>
