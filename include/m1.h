@@ -35,7 +35,7 @@ _Static_assert(sizeof(header) == H_SIZE, "header must be 16 bytes");
 _Static_assert(sizeof(reg) == SLOT_SIZE, "register must be 8 bytes");
 _Static_assert(sizeof(page) == PG_SIZE, "page must be 4096 bytes");
 
-long offset_desloc(int n_pg, int n_slot);
+off_t offset_desloc(int n_pg, int n_slot);
 
 int write_pg(int n_pg, const page *p, FILE *f);
 int read_pg(int n_pg, page *p, FILE *f);
